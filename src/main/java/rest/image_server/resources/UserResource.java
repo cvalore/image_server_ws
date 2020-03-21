@@ -2,6 +2,7 @@ package rest.image_server.resources;
 
 import rest.image_server.exceptions.DataNotFoundException;
 import rest.image_server.exceptions.GenericException;
+import rest.image_server.frontend.UserFrontEnd;
 import rest.image_server.model.User;
 import rest.image_server.services.UserService;
 
@@ -14,17 +15,18 @@ import java.util.List;
 
 @Path("/users")
 @Consumes(MediaType.APPLICATION_JSON)
-@Produces(MediaType.APPLICATION_JSON)
+@Produces(MediaType.TEXT_HTML)
 public class UserResource {
       private UserService userService = new UserService();
 
       @GET
-      public List<User> getUsers() {
-            return userService.getUsers();
+      public String getUsers() {
+            List<User> users = userService.getUsers();
+            return UserFrontEnd.getUsersRepresentation(users);
       }
 
       @POST
-      public User addUser(User user, @Context UriInfo uriInfo) {
+      public String addUser(User user, @Context UriInfo uriInfo) {
             User newUser = userService.addUser(user);
 
             /*Create directory*/
@@ -39,18 +41,19 @@ public class UserResource {
             /*Add links*/
             addLinks(uriInfo, newUser);
 
-            return newUser;
+            return UserFrontEnd.getUserRepresentation(newUser, "User added");
       }
 
       @GET
       @Path("/{user_uuid}")
-      public User getUser(@PathParam("user_uuid") String uuid) {
-            return userService.getUser(uuid);
+      public String getUser(@PathParam("user_uuid") String uuid) {
+            User user = userService.getUser(uuid);
+            return UserFrontEnd.getUserRepresentation(user, "User requested");
       }
 
       @PUT
       @Path("/{user_uuid}")
-      public User updateUser(@PathParam("user_uuid") String uuid, User user, @Context UriInfo uriInfo) {
+      public String updateUser(@PathParam("user_uuid") String uuid, User user, @Context UriInfo uriInfo) {
             if(userService.getUser(uuid) == null) {
                   throw new DataNotFoundException("User with uuid " + uuid + " not found");
             }
@@ -59,13 +62,14 @@ public class UserResource {
 
             addLinks(uriInfo, updatedUser);
 
-            return updatedUser;
+            return UserFrontEnd.getUserRepresentation(updatedUser, "User updated");
       }
 
       @DELETE
       @Path("/{user_uuid}")
-      public User deleteUser(@PathParam("user_uuid") String uuid) {
-            return userService.removeUser(uuid);
+      public String deleteUser(@PathParam("user_uuid") String uuid) {
+            User user = userService.removeUser(uuid);
+            return UserFrontEnd.getUserRepresentation(user, "User deleted");
       }
 
       private void addLinks(@Context UriInfo uriInfo, User user) {
