@@ -2,7 +2,7 @@ package rest.image_server.resources;
 
 import rest.image_server.exceptions.DataNotFoundException;
 import rest.image_server.exceptions.GenericException;
-import rest.image_server.frontend.UserFrontEnd;
+import rest.image_server.frontend.UserFrontend;
 import rest.image_server.model.User;
 import rest.image_server.services.UserService;
 
@@ -22,7 +22,7 @@ public class UserResource {
       @GET
       public String getUsers() {
             List<User> users = userService.getUsers();
-            return UserFrontEnd.getUsersRepresentation(users);
+            return UserFrontend.getUsersRepresentation(users);
       }
 
       @POST
@@ -41,14 +41,14 @@ public class UserResource {
             /*Add links*/
             addLinks(uriInfo, newUser);
 
-            return UserFrontEnd.getUserRepresentation(newUser, "User added");
+            return UserFrontend.getUserRepresentation(newUser, "User added");
       }
 
       @GET
       @Path("/{user_uuid}")
       public String getUser(@PathParam("user_uuid") String uuid) {
             User user = userService.getUser(uuid);
-            return UserFrontEnd.getUserRepresentation(user, "User requested");
+            return UserFrontend.getUserRepresentation(user, "User requested");
       }
 
       @PUT
@@ -62,14 +62,14 @@ public class UserResource {
 
             addLinks(uriInfo, updatedUser);
 
-            return UserFrontEnd.getUserRepresentation(updatedUser, "User updated");
+            return UserFrontend.getUserRepresentation(updatedUser, "User updated");
       }
 
       @DELETE
       @Path("/{user_uuid}")
       public String deleteUser(@PathParam("user_uuid") String uuid) {
             User user = userService.removeUser(uuid);
-            return UserFrontEnd.getUserRepresentation(user, "User deleted");
+            return UserFrontend.getUserRepresentation(user, "User deleted");
       }
 
       private void addLinks(@Context UriInfo uriInfo, User user) {
@@ -81,36 +81,36 @@ public class UserResource {
 
       private String getUriForSelf(UriInfo uriInfo, User user) {
             return uriInfo
-                        .getBaseUriBuilder()
-                        .path(UserResource.class)
-                        .path(user.getUuid())
-                        .build()
-                        .toString();
+                    .getBaseUriBuilder()
+                    .path(UserResource.class)
+                    .path(user.getUuid())
+                    .build()
+                    .toString();
       }
 
       private String getUriForUsers(UriInfo uriInfo) {
             return uriInfo
-                        .getBaseUriBuilder()
-                        .path(UserResource.class)
-                        .build()
-                        .toString();
+                    .getBaseUriBuilder()
+                    .path(UserResource.class)
+                    .build()
+                    .toString();
       }
 
       private String getUriForUploadFolder(UriInfo uriInfo, User user) {
             return uriInfo
-                        .getBaseUriBuilder()
-                        .path(ImageResource.class)
-                        .path(user.getUuid())
-                        .build()
-                        .toString();
+                    .getBaseUriBuilder()
+                    .path(ImageResource.class)
+                    .path(user.getUuid())
+                    .build()
+                    .toString();
       }
 
       private String getUriForImages(UriInfo uriInfo) {
             return uriInfo
-                        .getBaseUriBuilder()
-                        .path(ImageResource.class)
-                        .build()
-                        .toString();
+                    .getBaseUriBuilder()
+                    .path(ImageResource.class)
+                    .build()
+                    .toString();
       }
 
 }
