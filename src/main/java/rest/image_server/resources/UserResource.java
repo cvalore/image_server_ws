@@ -30,7 +30,7 @@ public class UserResource {
             User newUser = userService.addUser(user);
 
             /*Create directory*/
-            String path = "." + File.separator + "upload_" + newUser.getUuid() + File.separator;
+            String path = "upload_" + newUser.getUuid() + File.separator;
 
             File file = new File(path);
             boolean created = file.mkdir();

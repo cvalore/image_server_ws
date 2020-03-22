@@ -27,19 +27,24 @@ public class ImageFrontend {
                           "<body> <h1> " + title + "</h1>";
                   last = "</body> </html>";
             }
+
             String selfLink = "";
             for(Link l : image.getLinks()) {
                   if(l.getRel().equals("self")) {
                         selfLink = l.getLink();
-                        break;
                   }
             }
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.append(selfLink);
+            stringBuilder.append("/raw");
+
+
             return
                     pre +
                     "<h2> Image " + image.getUuid() + " - " + image.getTitle() + " </h2>" +
 
-                        "<img src=\""+ selfLink + "\" alt=\"" + title +
-                        "\" width=\"400\" height=\"400\">" +
+                        "<img src=\""+ stringBuilder.toString() + "\" alt=\"" + image.getTitle() +
+                        "\" width=\"" + image.getWidth() + "\" height=\""+ image.getHeight() + "\">" +
 
                     getLinksRepresentation(image) + "<br>" +
                     last;

@@ -2,6 +2,7 @@ package rest.image_server.model;
 
 import javax.json.bind.annotation.JsonbPropertyOrder;
 import javax.xml.bind.annotation.XmlRootElement;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,6 +11,9 @@ import java.util.List;
 public class Image {
       private String uuid;
       private String title;
+      private String path;
+      private int width;
+      private int height;
       //private String userName;    //not used otherwise when the user changes it thorugh PUT
                                     //all the images need to be changed
 
@@ -65,5 +69,29 @@ public class Image {
             link.setLink(url);
             link.setRel(rel);
             links.add(link);
+      }
+
+      public String getPath() {
+            return path;
+      }
+
+      public void setPath(String path) {
+            this.path = path;
+      }
+
+      public int getWidth() {
+            return width;
+      }
+
+      public void setWidth(int width) {
+            this.width = width;
+      }
+
+      public int getHeight() {
+            return height;
+      }
+
+      public void setHeight(int height) {
+            this.height = height;
       }
 }

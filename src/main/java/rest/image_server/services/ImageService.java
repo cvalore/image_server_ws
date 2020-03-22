@@ -1,11 +1,13 @@
 package rest.image_server.services;
 
+import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import rest.image_server.exceptions.DataNotFoundException;
 import rest.image_server.exceptions.GenericException;
 import rest.image_server.model.Database;
 import rest.image_server.model.Image;
-import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -44,7 +46,7 @@ public class ImageService {
             throw new DataNotFoundException("Image with uuid " + imageUuid + " not found");
       }
 
-      public Image addImage(String userUuid, String fileName) {
+      public Image addImage(String userUuid, String fileName, String path) {
             if(fileName == null) {
                   if(imagesByUsers.get(userUuid) == null) {
                         imagesByUsers.put(userUuid, new ArrayList<>());
@@ -54,6 +56,21 @@ public class ImageService {
             Image image = new Image(fileName);
             String uuid = UUID.randomUUID().toString().split("-")[0];
             image.setUuid(uuid);
+            image.setPath(path);
+
+            //set height and width
+            BufferedImage bufferedImage = new BufferedImage(400, 400, BufferedImage.TYPE_INT_ARGB);
+            try {
+                  bufferedImage = ImageIO.read(
+                        new File(image.getPath())
+                  );
+            } catch (IOException e) {
+                  throw new GenericException("Cannot read the file: " + e.getMessage());
+            }
+
+            image.setWidth(bufferedImage.getWidth());
+            image.setHeight(bufferedImage.getHeight());
+
             List<Image> images = getImagesByUser(userUuid);
             images.add(image);
             return image;
@@ -69,14 +86,15 @@ public class ImageService {
                   throw new DataNotFoundException("User with uuid " + userUuid + " not found");
             }
 
-            String UPLOAD_PATH = "." + File.separator + "upload_"+ userUuid + File.separator;
+            String UPLOAD_PATH = "upload_"+ userUuid + File.separator;
 
             try
             {
                   int read = 0;
                   byte[] bytes = new byte[1024];
 
-                  OutputStream out = new FileOutputStream(new File(UPLOAD_PATH + fileMetaData.getFileName()));
+                  File file = new File(UPLOAD_PATH + fileMetaData.getFileName());
+                  OutputStream out = new FileOutputStream(file);
                   while ((read = fileInputStream.read(bytes)) != -1)
                   {
                         out.write(bytes, 0, read);
@@ -86,7 +104,7 @@ public class ImageService {
 
                   /*-------------------------------------*/
                   /*Create and add image instance*/
-                  return addImage(userUuid, fileMetaData.getFileName());
+                  return addImage(userUuid, fileMetaData.getFileName(), file.getAbsolutePath());
 
             } catch (IOException e)
             {
@@ -99,7 +117,7 @@ public class ImageService {
 
             //remove all the files but not the directory
             if(images != null) {
-                  String path = "." + File.separator + "upload_" + userUuid + File.separator;
+                  String path = "upload_" + userUuid + File.separator;
                   File file = new File(path);
                   String[] entries = file.list();
                   for (String s : entries) {
@@ -128,7 +146,7 @@ public class ImageService {
                         images.remove(i);
 
                         //delete also the actual file
-                        String path = "." + File.separator + "upload_" + userUuid + File.separator;
+                        String path = "upload_" + userUuid + File.separator;
                         File file = new File(path);
                         String[] entries = file.list();
                         for (String s : entries) {
@@ -158,7 +176,7 @@ public class ImageService {
             for(Image i : images) {
                   if(i.getUuid().equals(imageUuid)) {
                         //rename also the actual file
-                        String path = "." + File.separator + "upload_" + userUuid + File.separator;
+                        String path = "upload_" + userUuid + File.separator;
                         File file = new File(path);
                         String[] entries = file.list();
                         for (String s : entries) {

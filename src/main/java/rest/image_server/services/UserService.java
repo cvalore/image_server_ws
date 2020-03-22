@@ -33,7 +33,7 @@ public class UserService {
             String uuid = UUID.randomUUID().toString().split("-")[0];
             user.setUuid(uuid);
             users.put(user.getUuid(), user);
-            imageService.addImage(user.getUuid(), null);
+            imageService.addImage(user.getUuid(), null, null);
             return user;
       }
 
@@ -49,7 +49,7 @@ public class UserService {
             User user = users.get(uuid);
 
             if(user != null) {
-                  String path = "." + File.separator + "upload_" + uuid + File.separator;
+                  String path = "upload_" + uuid + File.separator;
                   File file = new File(path);
                   String[] entries = file.list();
                   for (String s : entries) {
