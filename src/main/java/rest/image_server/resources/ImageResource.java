@@ -28,14 +28,14 @@ public class ImageResource {
       @GET
       public String getImages() {
             List<Image> images = imageService.getImages();
-            return ImageFrontend.getImagesRepresentation(images, "Images");
+            return ImageFrontend.getImagesRepresentation(images, "Images", "");
       }
 
       @GET
       @Path("/{user_uuid}")
       public String getImagesByUser(@PathParam("user_uuid") String userUuid) {
             List<Image> imagesByUser = imageService.getImagesByUser(userUuid);
-            return ImageFrontend.getImagesRepresentation(imagesByUser, "Images requested");
+            return ImageFrontend.getImagesRepresentation(imagesByUser, "Images requested", userUuid);
       }
 
       @GET
@@ -108,7 +108,7 @@ public class ImageResource {
       @Path("/{user_uuid}")
       public String removeImagesByUser(@PathParam("user_uuid") String userUuid) {
             List<Image> images = imageService.removeImagesByUser(userUuid);
-            return ImageFrontend.getImagesRepresentation(images, "Images deleted");
+            return ImageFrontend.getImagesRepresentation(images, "Images deleted", "");
       }
 
       @DELETE
