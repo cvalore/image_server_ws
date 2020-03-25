@@ -1,0 +1,3 @@
+CREATE TABLE Images (
+carmelo-polimi-image-server::DATABASE(> useruuid varchar(20), imageuuid varchar(20), title varchar(50), path varchar(70), width integer, height integer, selfLink varchar(150), userLink varchar(150), userImagesLink varchar(150), imagesLink varchar(150), usersLink varchar(150), PRIMARY KEY(useruuid, imageuuid));
+

@@ -39,7 +39,7 @@ public class UserResource {
             }
 
             /*Add links*/
-            addLinks(uriInfo, newUser);
+            userService.addLinks(uriInfo, newUser);
 
             return UserFrontend.getUserRepresentation(newUser, "User added");
       }
@@ -60,7 +60,7 @@ public class UserResource {
             user.setUuid(userService.getUser(uuid).getUuid());
             User updatedUser = userService.updateUser(user);
 
-            addLinks(uriInfo, updatedUser);
+            userService.addLinks(uriInfo, updatedUser);           //TODO
 
             return UserFrontend.getUserRepresentation(updatedUser, "User updated");
       }
@@ -72,45 +72,5 @@ public class UserResource {
             return UserFrontend.getUserRepresentation(user, "User deleted");
       }
 
-      private void addLinks(@Context UriInfo uriInfo, User user) {
-            user.addLink(getUriForSelf(uriInfo, user), "self");
-            user.addLink(getUriForUsers(uriInfo), "users");
-            user.addLink(getUriForImages(uriInfo), "images");
-            user.addUploadFolderLink(getUriForUploadFolder(uriInfo, user), "upload_folder");
-      }
-
-      private String getUriForSelf(UriInfo uriInfo, User user) {
-            return uriInfo
-                    .getBaseUriBuilder()
-                    .path(UserResource.class)
-                    .path(user.getUuid())
-                    .build()
-                    .toString();
-      }
-
-      private String getUriForUsers(UriInfo uriInfo) {
-            return uriInfo
-                    .getBaseUriBuilder()
-                    .path(UserResource.class)
-                    .build()
-                    .toString();
-      }
-
-      private String getUriForUploadFolder(UriInfo uriInfo, User user) {
-            return uriInfo
-                    .getBaseUriBuilder()
-                    .path(ImageResource.class)
-                    .path(user.getUuid())
-                    .build()
-                    .toString();
-      }
-
-      private String getUriForImages(UriInfo uriInfo) {
-            return uriInfo
-                    .getBaseUriBuilder()
-                    .path(ImageResource.class)
-                    .build()
-                    .toString();
-      }
 
 }
