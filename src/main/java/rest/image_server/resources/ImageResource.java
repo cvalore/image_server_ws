@@ -8,13 +8,11 @@ import rest.image_server.model.Image;
 import rest.image_server.services.ImageService;
 
 import javax.imageio.ImageIO;
-import javax.swing.*;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
-import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.List;
@@ -80,7 +78,7 @@ public class ImageResource {
                                  @Context UriInfo uriInfo) throws Exception {
 
             Image image = imageService.uploadImage(fileInputStream, fileMetaData, userUuid);
-            addLinks(uriInfo, image, userUuid);
+            imageService.addLinks(uriInfo, image, userUuid);
 
             /*BufferedImage bufferedImage = new BufferedImage(400, 400, BufferedImage.TYPE_INT_ARGB);
             try {
@@ -118,55 +116,5 @@ public class ImageResource {
             return ImageFrontend.getImageRepresentation(image, "Image deleted");
       }
 
-      private void addLinks(@Context UriInfo uriInfo, Image image, String userUuid) {
-            image.addLink(getUriForSelf(uriInfo, image, userUuid), "self");
-            image.addLink(getUriForImagesUser(uriInfo, userUuid), "images_user");
-            image.addLink(getUriForImages(uriInfo), "images");
-            image.addLink(getUriForUser(uriInfo, userUuid), "user");
-            image.addLink(getUriForUsers(uriInfo), "users");
-      }
 
-      private String getUriForSelf(UriInfo uriInfo, Image image, String userUuid) {
-            return uriInfo
-                    .getBaseUriBuilder()
-                    .path(ImageResource.class)
-                    .path(userUuid)
-                    .path(image.getUuid())
-                    .build()
-                    .toString();
-      }
-
-      private String getUriForUsers(UriInfo uriInfo) {
-            return uriInfo
-                    .getBaseUriBuilder()
-                    .path(UserResource.class)
-                    .build()
-                    .toString();
-      }
-
-      private String getUriForUser(UriInfo uriInfo, String userUuid) {
-            return uriInfo
-                    .getBaseUriBuilder()
-                    .path(UserResource.class)
-                    .path(userUuid)
-                    .build()
-                    .toString();
-      }
-
-      private String getUriForImages(UriInfo uriInfo) {
-            return uriInfo
-                    .getBaseUriBuilder()
-                    .path(ImageResource.class)
-                    .build()
-                    .toString();
-      }
-
-      private String getUriForImagesUser(UriInfo uriInfo, String userUuid) {
-            return uriInfo
-                    .getBaseUriBuilder()
-                    .path(ImageResource.class)
-                    .path(userUuid)
-                    .build()
-                    .toString();
-      }
 }
