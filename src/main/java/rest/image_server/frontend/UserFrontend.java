@@ -11,10 +11,23 @@ public class UserFrontend {
             for(User u : users) {
                   stringBuilder.append(getUserRepresentation(u, ""));
             }
+            String uploadHtml =
+                        "<h3> Insert name of the user to create </h3>" +
+                        "<form id = \"my_form\" method=\"post\" enctype=\"text/plain\" onsubmit=\"myFunction()\">" +
+                        "    <input type=\"text\" name=\"name\">" +
+                        "    <input type=\"submit\" value=\"Create it\">" +
+                        "</form>" +
+                        "<script>" +
+                        "function myFunction(){" +
+                        "    var action_src = window.location.href + \"/raw_add/\" + document.getElementsByName(\"name\")[0].value;" +
+                        "    var my_form = document.getElementById('my_form');" +
+                        "    my_form.action = action_src ;" +
+                        "}" +
+                        "</script>";
             return
                     "<html>" +
                             "<head> <title> Registered users - Image Server RESTful API service </title> </head>" +
-                            "<body> <h1> Registered users </h1>" + stringBuilder.toString() + "</body>" +
+                            "<body> <h1> Registered users </h1>" + uploadHtml + stringBuilder.toString() + "</body>" +
                             "</html>";
       }
 

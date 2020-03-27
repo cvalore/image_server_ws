@@ -44,6 +44,14 @@ public class UserResource {
             return UserFrontend.getUserRepresentation(newUser, "User added");
       }
 
+      @POST
+      @Path("/raw_add/{name}")
+      @Consumes(MediaType.TEXT_PLAIN)
+      public String rawAdd(@PathParam("name") String name, @Context UriInfo uriInfo) {
+            User user = new User("", name);
+            return addUser(user, uriInfo);
+      }
+
       @GET
       @Path("/{user_uuid}")
       public String getUser(@PathParam("user_uuid") String uuid) {

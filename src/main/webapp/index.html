@@ -14,8 +14,23 @@
 
 <h2>
 Goes to "../api/users" to see all the users in the system <br>
-Post to "../api/users" to add an user in the system
+Post to "../api/users" to add an user in the system or use the form below:
 </h2>
+
+<h3> Insert name of the user to create </h3>
+
+<form id = "my_form" method="post" enctype="text/plain" onsubmit="myFunction()">
+    <input type="text" name="name">
+    <input type="submit" value="Create it">
+</form>
+
+<script>
+function myFunction(){
+    var action_src = window.location.href + "api/users/raw_add/" + document.getElementsByName("name")[0].value;
+    var my_form = document.getElementById('my_form');
+    my_form.action = action_src ;
+}
+</script>
 
 </body>
 
