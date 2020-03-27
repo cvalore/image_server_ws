@@ -14,10 +14,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
 import java.awt.image.BufferedImage;
 import java.io.*;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -76,7 +73,7 @@ public class ImageService {
 
       public List<Image> getImagesByUser(String userUuid) {
             List<Image> images = new ArrayList<>();
-            Image image = null;
+            Image image;
             try {
                   conn = Database.getConnection();
                   stmt = conn.createStatement();
@@ -123,7 +120,7 @@ public class ImageService {
                   conn = Database.getConnection();
                   stmt = conn.createStatement();
                   query = "SELECT * FROM Images " +
-                          "WHERE useruuid = '" + userUuid + " AND imageuuid = '" + imageUuid + "'";
+                          "WHERE useruuid = '" + userUuid + "' AND imageuuid = '" + imageUuid + "'";
                   ResultSet res = stmt.executeQuery(query);
                   while(res.next()) {
                         image = new Image(res.getString("imageuuid"), res.getString("title"));
@@ -190,8 +187,8 @@ public class ImageService {
             try {
                   conn = Database.getConnection();
                   stmt = conn.createStatement();
-                  query = "INSERT INTO Images (useruuid, imageuuid, path, width, height) VALUES ('" + userUuid +"', '" + uuid + "', '" +
-                        path + "', " + image.getWidth() + ", " + image.getHeight() + ")";
+                  query = "INSERT INTO Images (useruuid, imageuuid, title, path, width, height) VALUES ('" + userUuid +"', '" + uuid + "', '" +
+                        image.getTitle() + "', '" + path + "', " + image.getWidth() + ", " + image.getHeight() + ")";
                   stmt.executeUpdate(query);
             } catch (SQLException e) {}
             finally {
@@ -222,6 +219,25 @@ public class ImageService {
 
 //            if(getImagesByUser(userUuid) == null) {
 //                  throw new DataNotFoundException("User with uuid " + userUuid + " not found");
+//            }
+
+//            File file = new File(fileMetaData.getFileName());
+//            Image newImage = addImage(userUuid, fileMetaData.getFileName(), file.getAbsolutePath());
+//
+//            try {
+//                  FileInputStream fis = new FileInputStream(file);
+//                  PreparedStatement ps = conn.prepareStatement("UPDATE Images SET images = ?");
+//                  ps.setString(1, file.getName());
+//                  ps.setBinaryStream(2, fis, (int) file.length());
+//                  ps.executeUpdate();
+//                  ps.close();
+//                  fis.close();
+//            } catch (SQLException e) {
+//                  e.printStackTrace();
+//            } catch (FileNotFoundException e) {
+//                  e.printStackTrace();
+//            } catch (IOException e) {
+//                  e.printStackTrace();
 //            }
 
             String UPLOAD_PATH = "upload_"+ userUuid + File.separator;
@@ -464,13 +480,13 @@ public class ImageService {
             try {
                   conn = Database.getConnection();
                   stmt = conn.createStatement();
+
                   query = "UPDATE Images " +
-                          "SET selfLink = '" + getUriForSelf(uriInfo, image, userUuid) +"', " +
-                          "usersLink = '" + getUriForUsers(uriInfo) +"', " +
-                          "userLink = '" + getUriForUser(uriInfo, userUuid) +"', " +
-                          "imagesLink = '" + getUriForImages(uriInfo) +"', " +
-                          "userImagesLink = '" + getUriForImagesUser(uriInfo, userUuid) +"' WHERE useruuid = '" + userUuid + " AND imageuuid = '" + image.getUuid() + "'";
+                          "SET (selfLink, userslink, userLink, imageslink, userImagesLink) = ('" + getUriForSelf(uriInfo, image, userUuid) +"', '" + getUriForUsers(uriInfo) +"', '" +
+                          getUriForUser(uriInfo, userUuid) + "', '" + getUriForImages(uriInfo) +"', '" + getUriForImagesUser(uriInfo, userUuid) +"') " +
+                          "WHERE useruuid = '" + userUuid + "' AND imageuuid = '" + image.getUuid() + "'";
                   stmt.executeUpdate(query);
+
             } catch (SQLException e) {}
             finally {
                   try {
@@ -486,11 +502,11 @@ public class ImageService {
                         e.printStackTrace();
                   }
             }
-//            image.addLink(getUriForSelf(uriInfo, image, userUuid), "self");
-//            image.addLink(getUriForImagesUser(uriInfo, userUuid), "images_user");
-//            image.addLink(getUriForImages(uriInfo), "images");
-//            image.addLink(getUriForUser(uriInfo, userUuid), "user");
-//            image.addLink(getUriForUsers(uriInfo), "users");
+            image.addLink(getUriForSelf(uriInfo, image, userUuid), "self");
+            image.addLink(getUriForImagesUser(uriInfo, userUuid), "images_user");
+            image.addLink(getUriForImages(uriInfo), "images");
+            image.addLink(getUriForUser(uriInfo, userUuid), "user");
+            image.addLink(getUriForUsers(uriInfo), "users");
       }
 
       private String getUriForSelf(UriInfo uriInfo, Image image, String userUuid) {
