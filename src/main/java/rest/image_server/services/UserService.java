@@ -1,41 +1,42 @@
 package rest.image_server.services;
 
 import rest.image_server.exceptions.DataNotFoundException;
+import rest.image_server.exceptions.GenericException;
 import rest.image_server.model.Database;
 import rest.image_server.model.User;
 import rest.image_server.resources.ImageResource;
 import rest.image_server.resources.UserResource;
 
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
 import java.io.File;
-import java.net.URISyntaxException;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 public class UserService {
 //      private Map<String, User> users = Database.getUsers();
       private ImageService imageService = new ImageService();
 
-      Connection conn = null;
-      Statement stmt = null;
-      String query = null;
+      private Connection conn = null;
+      private Statement stmt = null;
+      private String query = null;
 
       public UserService() {
       }
 
       public List<User> getUsers() {
 
-            List<User> users = new ArrayList();
+            List<User> users = new ArrayList<>();
 
             try {
                   conn = Database.getConnection();
+                  if(conn == null) {
+                        throw new GenericException("Cannot connect to db");
+                  }
                   stmt = conn.createStatement();
                   query = "SELECT * FROM Users;";
                   ResultSet res = stmt.executeQuery(query);
@@ -48,13 +49,13 @@ public class UserService {
                         users.add(newuser);
                   }
                   res.close();
-            } catch (SQLException e) {}
+            } catch (SQLException e) {e.printStackTrace();}
             finally {
                   try {
                         if (stmt != null){
-                              conn.close();
+                              stmt.close();
                         }
-                  } catch (SQLException e) {}
+                  } catch (SQLException e) {e.printStackTrace();}
                   try {
                         if (conn != null) {
                               conn.close();
@@ -70,6 +71,9 @@ public class UserService {
             User user = null;
             try {
                   conn = Database.getConnection();
+                  if(conn == null) {
+                        throw new GenericException("Cannot connect to db");
+                  }
                   stmt = conn.createStatement();
                   query = "SELECT * FROM Users WHERE uuid = '" + uuid + "'";
                   ResultSet res = stmt.executeQuery(query);
@@ -81,13 +85,13 @@ public class UserService {
                         user.addUploadFolderLink(res.getString("uploadFolderLink"), "upload_folder");
                   }
                   res.close();
-            } catch (SQLException e) {}
+            } catch (SQLException e) {e.printStackTrace();}
             finally {
                   try {
                         if (stmt != null){
-                              conn.close();
+                              stmt.close();
                         }
-                  } catch (SQLException e) {}
+                  } catch (SQLException e) {e.printStackTrace();}
                   try {
                         if (conn != null) {
                               conn.close();
@@ -109,17 +113,20 @@ public class UserService {
 
             try {
                   conn = Database.getConnection();
+                  if(conn == null) {
+                        throw new GenericException("Cannot connect to db");
+                  }
                   stmt = conn.createStatement();
                   query = "INSERT INTO Users (uuid, name) VALUES ('" + uuid + "', '" + user.getName() + "')";
                   stmt.executeUpdate(query);
 
-            } catch (SQLException e) {}
+            } catch (SQLException e) {e.printStackTrace();}
             finally {
                   try {
                         if (stmt != null){
-                              conn.close();
+                              stmt.close();
                         }
-                  } catch (SQLException e) {}
+                  } catch (SQLException e) {e.printStackTrace();}
                   try {
                         if (conn != null) {
                               conn.close();
@@ -139,18 +146,21 @@ public class UserService {
             int updatedRows = 0;
             try {
                   conn = Database.getConnection();
+                  if(conn == null) {
+                        throw new GenericException("Cannot connect to db");
+                  }
                   stmt = conn.createStatement();
                   query = "UPDATE Users " +
                           "SET name = '" + user.getName() +"' WHERE uuid = '" + user.getUuid() + "'";
                   updatedRows = stmt.executeUpdate(query);
 
-            } catch (SQLException e) {}
+            } catch (SQLException e) {e.printStackTrace();}
             finally {
                   try {
                         if (stmt != null){
-                              conn.close();
+                              stmt.close();
                         }
-                  } catch (SQLException e) {}
+                  } catch (SQLException e) {e.printStackTrace();}
                   try {
                         if (conn != null) {
                               conn.close();
@@ -172,6 +182,9 @@ public class UserService {
             String query2;
           try {
               conn = Database.getConnection();
+                if(conn == null) {
+                      throw new GenericException("Cannot connect to db");
+                }
               stmt = conn.createStatement();
               retrieveUser = "SELECT * FROM Users WHERE uuid = '" + uuid + "'";
               ResultSet res = stmt.executeQuery(retrieveUser);
@@ -188,13 +201,13 @@ public class UserService {
               stmt.executeUpdate(query);
               stmt.executeUpdate(query2);
 
-          } catch (SQLException e) {}
+          } catch (SQLException e) {e.printStackTrace();}
           finally {
               try {
                   if (stmt != null){
-                      conn.close();
+                      stmt.close();
                   }
-              } catch (SQLException e) {}
+              } catch (SQLException e) {e.printStackTrace();}
               try {
                   if (conn != null) {
                       conn.close();
@@ -208,11 +221,13 @@ public class UserService {
                   String path = "upload_" + uuid + File.separator;
                   File file = new File(path);
                   String[] entries = file.list();
-                  for (String s : entries) {
-                        File currentFile = new File(file.getPath(), s);
-                        currentFile.delete();
+                  if(entries != null) {
+                        for (String s : entries) {
+                              File currentFile = new File(file.getPath(), s);
+                              boolean del = currentFile.delete();
+                        }
                   }
-                  file.delete();
+                  boolean del = file.delete();
             }
             //Database.getImagesByUsers().remove(uuid);
             return user;
@@ -224,18 +239,21 @@ public class UserService {
 
             try {
                   conn = Database.getConnection();
+                  if(conn == null) {
+                        throw new GenericException("Cannot connect to db");
+                  }
                   stmt = conn.createStatement();
                   query = "UPDATE Users " +
                           "SET (selfLink, userslink, imageslink, uploadfolderlink) = ('" + getUriForSelf(uriInfo, user) +"', '" + getUriForUsers(uriInfo) +"', '" +
                            getUriForImages(uriInfo) +"', '" + getUriForUploadFolder(uriInfo, user) +"') WHERE uuid = '" + uuid + "'";
                   stmt.executeUpdate(query);
-            } catch (SQLException e) {}
+            } catch (SQLException e) {e.printStackTrace();}
             finally {
                   try {
                         if (stmt != null){
-                              conn.close();
+                              stmt.close();
                         }
-                  } catch (SQLException e) {}
+                  } catch (SQLException e) {e.printStackTrace();}
                   try {
                         if (conn != null) {
                               conn.close();

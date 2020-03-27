@@ -5,7 +5,6 @@ import rest.image_server.exceptions.DataNotFoundException;
 import rest.image_server.exceptions.GenericException;
 import rest.image_server.model.Database;
 import rest.image_server.model.Image;
-import rest.image_server.model.User;
 import rest.image_server.resources.ImageResource;
 import rest.image_server.resources.UserResource;
 
@@ -14,7 +13,10 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
 import java.awt.image.BufferedImage;
 import java.io.*;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -23,15 +25,18 @@ import java.util.UUID;
 public class ImageService {
       private Map<String, List<Image>> imagesByUsers = Database.getImagesByUsers();
 
-      Connection conn = null;
-      Statement stmt = null;
-      String query = null;
+      private Connection conn = null;
+      private Statement stmt = null;
+      private String query = null;
 
       public List<Image> getImages() {
             List<Image> images = new ArrayList<>();
             Image image = null;
             try {
                   conn = Database.getConnection();
+                  if(conn == null) {
+                        throw new GenericException("Cannot connect to db");
+                  }
                   stmt = conn.createStatement();
                   query = "SELECT * FROM Images;";
                   ResultSet res = stmt.executeQuery(query);
@@ -48,13 +53,13 @@ public class ImageService {
                         images.add(image);
                   }
                   res.close();
-            } catch (SQLException e) {}
+            } catch (SQLException e) {e.printStackTrace();}
             finally {
                   try {
                         if (stmt != null){
-                              conn.close();
+                              stmt.close();
                         }
-                  } catch (SQLException e) {}
+                  } catch (SQLException e) {e.printStackTrace();}
                   try {
                         if (conn != null) {
                               conn.close();
@@ -76,6 +81,9 @@ public class ImageService {
             Image image;
             try {
                   conn = Database.getConnection();
+                  if(conn == null) {
+                        throw new GenericException("Cannot connect to db");
+                  }
                   stmt = conn.createStatement();
                   query = "SELECT * FROM Images " +
                           "WHERE useruuid = '" + userUuid + "'";
@@ -93,13 +101,13 @@ public class ImageService {
                         images.add(image);
                   }
                   res.close();
-            } catch (SQLException e) {}
+            } catch (SQLException e) {e.printStackTrace();}
             finally {
                   try {
                         if (stmt != null){
-                              conn.close();
+                              stmt.close();
                         }
-                  } catch (SQLException e) {}
+                  } catch (SQLException e) {e.printStackTrace();}
                   try {
                         if (conn != null) {
                               conn.close();
@@ -118,6 +126,9 @@ public class ImageService {
             Image image = null;
             try {
                   conn = Database.getConnection();
+                  if(conn == null) {
+                        throw new GenericException("Cannot connect to db");
+                  }
                   stmt = conn.createStatement();
                   query = "SELECT * FROM Images " +
                           "WHERE useruuid = '" + userUuid + "' AND imageuuid = '" + imageUuid + "'";
@@ -134,13 +145,13 @@ public class ImageService {
                         image.addLink(res.getString("userimageslink"), "images_user");
                   }
                   res.close();
-            } catch (SQLException e) {}
+            } catch (SQLException e) {e.printStackTrace();}
             finally {
                   try {
                         if (stmt != null){
-                              conn.close();
+                              stmt.close();
                         }
-                  } catch (SQLException e) {}
+                  } catch (SQLException e) {e.printStackTrace();}
                   try {
                         if (conn != null) {
                               conn.close();
@@ -186,17 +197,20 @@ public class ImageService {
 
             try {
                   conn = Database.getConnection();
+                  if(conn == null) {
+                        throw new GenericException("Cannot connect to db");
+                  }
                   stmt = conn.createStatement();
                   query = "INSERT INTO Images (useruuid, imageuuid, title, path, width, height) VALUES ('" + userUuid +"', '" + uuid + "', '" +
                         image.getTitle() + "', '" + path + "', " + image.getWidth() + ", " + image.getHeight() + ")";
                   stmt.executeUpdate(query);
-            } catch (SQLException e) {}
+            } catch (SQLException e) {e.printStackTrace();}
             finally {
                   try {
                         if (stmt != null){
-                              conn.close();
+                              stmt.close();
                         }
-                  } catch (SQLException e) {}
+                  } catch (SQLException e) {e.printStackTrace();}
                   try {
                         if (conn != null) {
                               conn.close();
@@ -272,6 +286,9 @@ public class ImageService {
             Image image = null;
             try {
                   conn = Database.getConnection();
+                  if(conn == null) {
+                        throw new GenericException("Cannot connect to db");
+                  }
                   stmt = conn.createStatement();
                   query = "SELECT * FROM Images " +
                           "WHERE useruuid = '" + userUuid + "'";
@@ -293,13 +310,13 @@ public class ImageService {
                   deleteImages = "DELETE * FROM Images WHERE useruuid = '" + userUuid + "'";
                   stmt.executeUpdate(deleteImages);
 
-            } catch (SQLException e) {}
+            } catch (SQLException e) {e.printStackTrace();}
             finally {
                   try {
                         if (stmt != null){
-                              conn.close();
+                              stmt.close();
                         }
-                  } catch (SQLException e) {}
+                  } catch (SQLException e) {e.printStackTrace();}
                   try {
                         if (conn != null) {
                               conn.close();
@@ -315,9 +332,11 @@ public class ImageService {
                   String path = "upload_" + userUuid + File.separator;
                   File file = new File(path);
                   String[] entries = file.list();
-                  for (String s : entries) {
-                        File currentFile = new File(file.getPath(), s);
-                        currentFile.delete();
+                  if(entries != null) {
+                        for (String s : entries) {
+                              File currentFile = new File(file.getPath(), s);
+                              boolean del = currentFile.delete();
+                        }
                   }
 
 //                  List<Image> imagesToReturn = imagesByUsers.get(userUuid);
@@ -332,6 +351,9 @@ public class ImageService {
             Image image = null;
             try {
                   conn = Database.getConnection();
+                  if(conn == null) {
+                        throw new GenericException("Cannot connect to db");
+                  }
                   stmt = conn.createStatement();
                   query = "SELECT * FROM Images " +
                           "WHERE useruuid = '" + userUuid + " AND imageuuid = '" + imageUuid + "'";
@@ -349,13 +371,13 @@ public class ImageService {
                   }
                   res.close();
 
-            } catch (SQLException e) {}
+            } catch (SQLException e) {e.printStackTrace();}
             finally {
                   try {
                         if (stmt != null){
-                              conn.close();
+                              stmt.close();
                         }
-                  } catch (SQLException e) {}
+                  } catch (SQLException e) {e.printStackTrace();}
                   try {
                         if (conn != null) {
                               conn.close();
@@ -378,10 +400,12 @@ public class ImageService {
             String path = "upload_" + userUuid + File.separator;
             File file = new File(path);
             String[] entries = file.list();
-            for (String s : entries) {
-                  if(s.equals(image.getTitle())) {
-                        File currentFile = new File(file.getPath(), s);
-                        currentFile.delete();
+            if(entries != null) {
+                  for (String s : entries) {
+                        if (s.equals(image.getTitle())) {
+                              File currentFile = new File(file.getPath(), s);
+                              boolean del = currentFile.delete();
+                        }
                   }
             }
 //                        break;
@@ -399,6 +423,9 @@ public class ImageService {
             String selectQuery = null;
             try {
                   conn = Database.getConnection();
+                  if(conn == null) {
+                        throw new GenericException("Cannot connect to db");
+                  }
                   stmt = conn.createStatement();
                   selectQuery = "SELECT * FROM Images WHERE useruuid = '" + userUuid + " AND imageuuid = '" + imageUuid + "'";         //TODO
                   ResultSet res = stmt.executeQuery(selectQuery);
@@ -417,13 +444,13 @@ public class ImageService {
                   query = "UPDATE Images " +
                           "SET title = '" + newTitle +"' WHERE useruuid = '" + userUuid + " AND imageuuid = '" + imageUuid + "'";
                   updatesNumber = stmt.executeUpdate(query);
-            } catch (SQLException e) {}
+            } catch (SQLException e) {e.printStackTrace();}
             finally {
                   try {
                         if (stmt != null){
-                              conn.close();
+                              stmt.close();
                         }
-                  } catch (SQLException e) {}
+                  } catch (SQLException e) {e.printStackTrace();}
                   try {
                         if (conn != null) {
                               conn.close();
@@ -448,21 +475,23 @@ public class ImageService {
                         String path = "upload_" + userUuid + File.separator;
                         File file = new File(path);
                         String[] entries = file.list();
-                        for (String s : entries) {
-                              if(s.equals(image.getTitle())) {
-                                    File currentFile = new File(file.getPath(), s);
+                        if(entries != null && image != null) {
+                              for (String s : entries) {
+                                    if (s.equals(image.getTitle())) {
+                                          File currentFile = new File(file.getPath(), s);
 
-                                    //adjust newTitle extension
-                                    if(!newTitle.contains(".") ||
-                                          !newTitle.substring(newTitle.lastIndexOf(".")+1).equals("jpg")) {
-                                         newTitle = newTitle + ".jpg";
+                                          //adjust newTitle extension
+                                          if (!newTitle.contains(".") ||
+                                                !newTitle.substring(newTitle.lastIndexOf(".") + 1).equals("jpg")) {
+                                                newTitle = newTitle + ".jpg";
+                                          }
+
+                                          File newFile = new File(file.getPath(), newTitle);
+                                          boolean ren = currentFile.renameTo(newFile);
                                     }
-
-                                    File newFile = new File(file.getPath(), newTitle);
-                                    currentFile.renameTo(newFile);
                               }
+                              image.setTitle(newTitle);
                         }
-                        image.setTitle(newTitle);
 //                        image = i;
 //                        break;
 //                  }
@@ -479,6 +508,9 @@ public class ImageService {
 
             try {
                   conn = Database.getConnection();
+                  if(conn == null) {
+                        throw new GenericException("Cannot connect to db");
+                  }
                   stmt = conn.createStatement();
 
                   query = "UPDATE Images " +
@@ -487,13 +519,13 @@ public class ImageService {
                           "WHERE useruuid = '" + userUuid + "' AND imageuuid = '" + image.getUuid() + "'";
                   stmt.executeUpdate(query);
 
-            } catch (SQLException e) {}
+            } catch (SQLException e) {e.printStackTrace();}
             finally {
                   try {
                         if (stmt != null){
-                              conn.close();
+                              stmt.close();
                         }
-                  } catch (SQLException e) {}
+                  } catch (SQLException e) {e.printStackTrace();}
                   try {
                         if (conn != null) {
                               conn.close();

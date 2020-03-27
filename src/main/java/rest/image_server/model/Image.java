@@ -2,7 +2,6 @@ package rest.image_server.model;
 
 import javax.json.bind.annotation.JsonbPropertyOrder;
 import javax.xml.bind.annotation.XmlRootElement;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
