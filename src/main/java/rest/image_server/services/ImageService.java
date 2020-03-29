@@ -13,17 +13,10 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
 import java.awt.image.BufferedImage;
 import java.io.*;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.sql.*;
+import java.util.*;
 
 public class ImageService {
-      private Map<String, List<Image>> imagesByUsers = Database.getImagesByUsers();
 
       private Connection conn = null;
       private Statement stmt = null;
@@ -38,11 +31,10 @@ public class ImageService {
                         throw new GenericException("Cannot connect to db");
                   }
                   stmt = conn.createStatement();
-                  query = "SELECT * FROM Images;";
+                  query = "SELECT  imageuuid, title, width, height, selflink, userlink, userimageslink, imageslink, userslink FROM Images";
                   ResultSet res = stmt.executeQuery(query);
                   while(res.next()) {
                         image = new Image(res.getString("imageuuid"), res.getString("title"));
-                        image.setPath(res.getString("path"));
                         image.setWidth(res.getInt("width"));
                         image.setHeight(res.getInt("height"));
                         image.addLink(res.getString("selfLink"), "self");
@@ -69,9 +61,6 @@ public class ImageService {
                   }
             }
 
-//            for(List<Image> imageList : imagesByUsers.values()) {
-//                  images.addAll(imageList);
-//            }
 //          DO WE NEED TO ADD DATA NOT FOUND EXCEPTION??
             return images;
       }
@@ -85,12 +74,11 @@ public class ImageService {
                         throw new GenericException("Cannot connect to db");
                   }
                   stmt = conn.createStatement();
-                  query = "SELECT * FROM Images " +
+                  query = "SELECT  imageuuid, title, width, height, selflink, userlink, userimageslink, imageslink, userslink FROM Images " +
                           "WHERE useruuid = '" + userUuid + "'";
                   ResultSet res = stmt.executeQuery(query);
                   while(res.next()) {
                         image = new Image(res.getString("imageuuid"), res.getString("title"));
-                        image.setPath(res.getString("path"));
                         image.setWidth(res.getInt("width"));
                         image.setHeight(res.getInt("height"));
                         image.addLink(res.getString("selfLink"), "self");
@@ -130,12 +118,11 @@ public class ImageService {
                         throw new GenericException("Cannot connect to db");
                   }
                   stmt = conn.createStatement();
-                  query = "SELECT * FROM Images " +
+                  query = "SELECT  imageuuid, title, width, height, selflink, userlink, userimageslink, imageslink, userslink FROM Images " +
                           "WHERE useruuid = '" + userUuid + "' AND imageuuid = '" + imageUuid + "'";
                   ResultSet res = stmt.executeQuery(query);
                   while(res.next()) {
                         image = new Image(res.getString("imageuuid"), res.getString("title"));
-                        image.setPath(res.getString("path"));
                         image.setWidth(res.getInt("width"));
                         image.setHeight(res.getInt("height"));
                         image.addLink(res.getString("selfLink"), "self");
@@ -144,6 +131,7 @@ public class ImageService {
                         image.addLink(res.getString("userlink"), "user");
                         image.addLink(res.getString("userimageslink"), "images_user");
                   }
+
                   res.close();
             } catch (SQLException e) {e.printStackTrace();}
             finally {
@@ -167,148 +155,128 @@ public class ImageService {
             return image;
       }
 
-      public Image addImage(String userUuid, String fileName, String path) {
-            if(fileName == null) {
-//                  if(imagesByUsers.get(userUuid) == null) {
-//                        imagesByUsers.put(userUuid, new ArrayList<>());
-//                  }
-                  return null;
-            }
-            Image image = new Image(fileName);
-            String uuid = UUID.randomUUID().toString().split("-")[0];
-            image.setUuid(uuid);
-            image.setPath(path);
 
-            //set height and width
-
-            //BufferedImage bufferedImage = new BufferedImage(400, 400, BufferedImage.TYPE_INT_ARGB);
-            BufferedImage bufferedImage;
-            try {
-                  bufferedImage = ImageIO.read(
-                        new File(image.getPath())
-                  );
-            } catch (IOException e) {
-                  throw new GenericException("Cannot read the file: " + e.getMessage());
-            }
-
-            image.setWidth(bufferedImage.getWidth());
-            image.setHeight(bufferedImage.getHeight());
-
-
+      public InputStream getImageRaw(String userUuid, String imageUuid) {
+            InputStream inputStream = null;
             try {
                   conn = Database.getConnection();
                   if(conn == null) {
                         throw new GenericException("Cannot connect to db");
                   }
-                  stmt = conn.createStatement();
-                  query = "INSERT INTO Images (useruuid, imageuuid, title, path, width, height) VALUES ('" + userUuid +"', '" + uuid + "', '" +
-                        image.getTitle() + "', '" + path + "', " + image.getWidth() + ", " + image.getHeight() + ")";
-                  stmt.executeUpdate(query);
-            } catch (SQLException e) {e.printStackTrace();}
-            finally {
-                  try {
-                        if (stmt != null){
-                              stmt.close();
-                        }
-                  } catch (SQLException e) {e.printStackTrace();}
-                  try {
-                        if (conn != null) {
-                              conn.close();
-                        }
-                  } catch (SQLException e) {
-                        e.printStackTrace();
+                  PreparedStatement ps = conn.prepareStatement("SELECT picture FROM images WHERE useruuid = ? AND imageuuid = ?");
+                  ps.setString(1, userUuid);
+                  ps.setString(2, imageUuid);
+                  ResultSet rs = ps.executeQuery();
+                  while (rs.next()) {
+                        inputStream = rs.getBinaryStream("picture");
+                        // use the data in some way here
                   }
+                  rs.close();
+                  ps.close();
+            } catch (SQLException e) {
+                  e.printStackTrace();
             }
-
-//            List<Image> images = getImagesByUser(userUuid);
-//            images.add(image);
-            return image;
+            return inputStream;
       }
 
+
       public Image uploadImage(InputStream fileInputStream, FormDataContentDisposition fileMetaData, String userUuid) {
+            String insertQuery;
+
             String extension = fileMetaData.getFileName().substring(fileMetaData.getFileName().lastIndexOf(".")+1);
             if(!extension.equals("jpg")) {
                   throw new GenericException("Cannot upload ." + extension + " files, just .jpg files");
             }
 
-//            if(getImagesByUser(userUuid) == null) {
-//                  throw new DataNotFoundException("User with uuid " + userUuid + " not found");
-//            }
+            Image image = new Image(fileMetaData.getFileName());
+            String uuid = UUID.randomUUID().toString().split("-")[0];
+            image.setUuid(uuid);
 
-//            File file = new File(fileMetaData.getFileName());
-//            Image newImage = addImage(userUuid, fileMetaData.getFileName(), file.getAbsolutePath());
-//
-//            try {
-//                  FileInputStream fis = new FileInputStream(file);
-//                  PreparedStatement ps = conn.prepareStatement("UPDATE Images SET images = ?");
-//                  ps.setString(1, file.getName());
-//                  ps.setBinaryStream(2, fis, (int) file.length());
-//                  ps.executeUpdate();
-//                  ps.close();
-//                  fis.close();
-//            } catch (SQLException e) {
-//                  e.printStackTrace();
-//            } catch (FileNotFoundException e) {
-//                  e.printStackTrace();
-//            } catch (IOException e) {
-//                  e.printStackTrace();
-//            }
+            //set height and width
 
-            String UPLOAD_PATH = "upload_"+ userUuid + File.separator;
-
-            try
-            {
-                  int read;
-                  byte[] bytes = new byte[1024];
-
-                  File file = new File(UPLOAD_PATH + fileMetaData.getFileName());
-                  OutputStream out = new FileOutputStream(file);
-                  while ((read = fileInputStream.read(bytes)) != -1)
-                  {
-                        out.write(bytes, 0, read);
-                  }
-                  out.flush();
-                  out.close();
-
-                  /*-------------------------------------*/
-                  /*Create and add image instance*/
-                  return addImage(userUuid, fileMetaData.getFileName(), file.getAbsolutePath());
-
-            } catch (IOException e)
-            {
-                  throw new GenericException("Exception while loading the file:\n" + e.getMessage());
-            }
-      }
-
-      public List<Image> removeImagesByUser(String userUuid) {
-            List<Image> images = new ArrayList<>();
-            String deleteImages = null;
-            Image image = null;
+            int byteCount;
+            byte[] buffer = new byte[1024];
+            byte[] source = null;
+            ByteArrayOutputStream output = new ByteArrayOutputStream();
             try {
+                  while ((byteCount = fileInputStream.read(buffer)) != -1) {
+                        output.write(buffer, 0, byteCount);
+                  }
+                  source = output.toByteArray();
+
+            } catch (IOException e){
+                  e.printStackTrace();
+            }
+
+            setImageDim(source, image);
+
+            try {
+
                   conn = Database.getConnection();
                   if(conn == null) {
                         throw new GenericException("Cannot connect to db");
                   }
                   stmt = conn.createStatement();
-                  query = "SELECT * FROM Images " +
-                          "WHERE useruuid = '" + userUuid + "'";
-                  ResultSet res = stmt.executeQuery(query);
-                  while(res.next()) {
-                        image = new Image(res.getString("imageuuid"), res.getString("title"));
-                        image.setPath(res.getString("path"));
-                        image.setWidth(res.getInt("width"));
-                        image.setHeight(res.getInt("height"));
-                        image.addLink(res.getString("selfLink"), "self");
-                        image.addLink(res.getString("usersLink"), "users");
-                        image.addLink(res.getString("imagesLink"), "images");
-                        image.addLink(res.getString("userlink"), "user");
-                        image.addLink(res.getString("userimageslink"), "images_user");
-                        images.add(image);
+                  query = "SELECT * FROM Users WHERE uuid = '" + userUuid + "'";
+                  if (!stmt.execute(query)){
+                        throw new GenericException("Specified user is not present");
                   }
-                  res.close();
 
-                  deleteImages = "DELETE * FROM Images WHERE useruuid = '" + userUuid + "'";
-                  stmt.executeUpdate(deleteImages);
+                  insertQuery = "INSERT INTO Images (useruuid, imageuuid, title, width, height, picture) VALUES (?, ?, ?, ?, ?, ?)";
+                  PreparedStatement ps = conn.prepareStatement(insertQuery);
+                  ps.setString(1, userUuid);
+                  ps.setString(2, uuid);
+                  ps.setString(3, image.getTitle());
+                  ps.setInt(4, image.getWidth());
+                  ps.setInt(5, image.getHeight());
+                  ps.setBytes(6, source);
+
+                  ps.executeUpdate();
+                  ps.close();
+            } catch (SQLException e) {
+                  e.printStackTrace();
+            }finally {
+                  try {
+                        if (stmt != null){
+                              stmt.close();
+                        }
+                  } catch (SQLException e) {e.printStackTrace();}
+                  try {
+                        if (conn != null) {
+                              conn.close();
+                        }
+                  } catch (SQLException e) {
+                        e.printStackTrace();
+                  }
+            }
+            return image;
+      }
+
+      private void setImageDim(byte[] imgByte, Image image) {
+
+            try {
+                  InputStream in = new ByteArrayInputStream(imgByte);
+
+                  BufferedImage buf = ImageIO.read(in);
+                  image.setHeight(buf.getHeight());
+                  image.setWidth(buf.getWidth());
+            } catch (IOException e) {
+                  e.printStackTrace();
+            }
+
+      }
+
+      public void removeImagesByUser(String userUuid) {
+            String deleteImages;
+            int deletedImagesNum = 0;
+            try {
+                  conn = Database.getConnection();
+                  if(conn == null) {
+                        throw new GenericException("Cannot connect to db");
+                  }
+
+                  deleteImages = "DELETE FROM Images WHERE useruuid = '" + userUuid + "'";
+                  deletedImagesNum = stmt.executeUpdate(deleteImages);
 
             } catch (SQLException e) {e.printStackTrace();}
             finally {
@@ -325,113 +293,60 @@ public class ImageService {
                         e.printStackTrace();
                   }
             }
-            //List<Image> images = imagesByUsers.get(userUuid);
 
-            //remove all the files but not the directory
-            if(images != null) {
-                  String path = "upload_" + userUuid + File.separator;
-                  File file = new File(path);
-                  String[] entries = file.list();
-                  if(entries != null) {
-                        for (String s : entries) {
-                              File currentFile = new File(file.getPath(), s);
-                              boolean del = currentFile.delete();
-                        }
-                  }
-
-//                  List<Image> imagesToReturn = imagesByUsers.get(userUuid);
-//                  imagesByUsers.replace(userUuid, new ArrayList<>());
-                  return images;
-            }
-            throw new DataNotFoundException("Images of user " + userUuid + " not found");
-      }
-
-      public Image removeImage(String userUuid, String imageUuid) {
-
-            Image image = null;
-            try {
-                  conn = Database.getConnection();
-                  if(conn == null) {
-                        throw new GenericException("Cannot connect to db");
-                  }
-                  stmt = conn.createStatement();
-                  query = "SELECT * FROM Images " +
-                          "WHERE useruuid = '" + userUuid + " AND imageuuid = '" + imageUuid + "'";
-                  ResultSet res = stmt.executeQuery(query);
-                  while(res.next()) {
-                        image = new Image(res.getString("imageuuid"), res.getString("title"));
-                        image.setPath(res.getString("path"));
-                        image.setWidth(res.getInt("width"));
-                        image.setHeight(res.getInt("height"));
-                        image.addLink(res.getString("selfLink"), "self");
-                        image.addLink(res.getString("usersLink"), "users");
-                        image.addLink(res.getString("imagesLink"), "images");
-                        image.addLink(res.getString("userlink"), "user");
-                        image.addLink(res.getString("userimageslink"), "images_user");
-                  }
-                  res.close();
-
-            } catch (SQLException e) {e.printStackTrace();}
-            finally {
-                  try {
-                        if (stmt != null){
-                              stmt.close();
-                        }
-                  } catch (SQLException e) {e.printStackTrace();}
-                  try {
-                        if (conn != null) {
-                              conn.close();
-                        }
-                  } catch (SQLException e) {
-                        e.printStackTrace();
-                  }
-            }
-            //List<Image> images = imagesByUsers.get(userUuid);
-            if(image == null) {
+            if(deletedImagesNum == 0) {
                   throw new DataNotFoundException("Images of user " + userUuid + " not found");
             }
-//            Image image = null;
-//            for(Image i : images) {
-//                  if(i.getUuid().equals(imageUuid)) {
-//                        image = i;
-//                        images.remove(i);
+      }
 
-                        //delete also the actual file
-            String path = "upload_" + userUuid + File.separator;
-            File file = new File(path);
-            String[] entries = file.list();
-            if(entries != null) {
-                  for (String s : entries) {
-                        if (s.equals(image.getTitle())) {
-                              File currentFile = new File(file.getPath(), s);
-                              boolean del = currentFile.delete();
+      public void removeImage(String userUuid, String imageUuid) {
+            String deleteQuery;
+            int removed = 0;
+            try {
+                  conn = Database.getConnection();
+                  if(conn == null) {
+                        throw new GenericException("Cannot connect to db");
+                  }
+
+                  deleteQuery = "DELETE FROM Images WHERE useruuid = '" + userUuid + "' AND imageuuid = '" + imageUuid + "'";
+                  removed = stmt.executeUpdate(deleteQuery);
+
+            } catch (SQLException e) {e.printStackTrace();}
+            finally {
+                  try {
+                        if (stmt != null){
+                              stmt.close();
                         }
+                  } catch (SQLException e) {e.printStackTrace();}
+                  try {
+                        if (conn != null) {
+                              conn.close();
+                        }
+                  } catch (SQLException e) {
+                        e.printStackTrace();
                   }
             }
-//                        break;
-//                  }
-//            }
-//            if(image == null) {
-//                  throw new DataNotFoundException("Image " + imageUuid + " of user " + userUuid + " not found");
-//            }
-            return image;
+
+            if(removed == 0) {
+                  throw new DataNotFoundException("Image of user " + userUuid + " not found");
+            }
       }
 
       public Image renameImage(String userUuid, String imageUuid, String newTitle) {
             int updatesNumber = 0;
             Image image = null;
-            String selectQuery = null;
+            String selectQuery;
             try {
                   conn = Database.getConnection();
                   if(conn == null) {
                         throw new GenericException("Cannot connect to db");
                   }
                   stmt = conn.createStatement();
-                  selectQuery = "SELECT * FROM Images WHERE useruuid = '" + userUuid + " AND imageuuid = '" + imageUuid + "'";         //TODO
+                  selectQuery = "SELECT  imageuuid, title, width, height, selflink, userlink, userimageslink, imageslink, userslink FROM Images " +
+                          "WHERE useruuid = '" + userUuid + " AND imageuuid = '" + imageUuid + "'";
                   ResultSet res = stmt.executeQuery(selectQuery);
                   while(res.next()) {
                         image = new Image(res.getString("imageuuid"), res.getString("title"));
-                        image.setPath(res.getString("path"));
                         image.setWidth(res.getInt("width"));
                         image.setHeight(res.getInt("height"));
                         image.addLink(res.getString("selfLink"), "self");
@@ -459,53 +374,14 @@ public class ImageService {
                         e.printStackTrace();
                   }
             }
-
-            //List<Image> images = imagesByUsers.get(userUuid);
-//            if(images == null) {
-//                  throw new DataNotFoundException("Images of user " + userUuid + " not found");
-//            }
             if(updatesNumber == 0) {
                   throw new DataNotFoundException("Image " + imageUuid + " of user " + userUuid + " not found");
             }
-
-//            Image image = null;
-//            for(Image i : images) {
-//                  if(i.getUuid().equals(imageUuid)) {
-                        //rename also the actual file
-                        String path = "upload_" + userUuid + File.separator;
-                        File file = new File(path);
-                        String[] entries = file.list();
-                        if(entries != null && image != null) {
-                              for (String s : entries) {
-                                    if (s.equals(image.getTitle())) {
-                                          File currentFile = new File(file.getPath(), s);
-
-                                          //adjust newTitle extension
-                                          if (!newTitle.contains(".") ||
-                                                !newTitle.substring(newTitle.lastIndexOf(".") + 1).equals("jpg")) {
-                                                newTitle = newTitle + ".jpg";
-                                          }
-
-                                          File newFile = new File(file.getPath(), newTitle);
-                                          boolean ren = currentFile.renameTo(newFile);
-                                    }
-                              }
-                              image.setTitle(newTitle);
-                        }
-//                        image = i;
-//                        break;
-//                  }
-//            }
-
-//            if(image == null) {
-//                  throw new DataNotFoundException("Image " + imageUuid + " of user " + userUuid + " not found");
-//            }
             return image;
       }
 
 
       public void addLinks(@Context UriInfo uriInfo, Image image, String userUuid) {
-
             try {
                   conn = Database.getConnection();
                   if(conn == null) {
@@ -584,4 +460,5 @@ public class ImageService {
                     .build()
                     .toString();
       }
+
 }

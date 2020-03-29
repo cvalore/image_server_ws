@@ -18,8 +18,6 @@ import java.util.List;
 import java.util.UUID;
 
 public class UserService {
-//      private Map<String, User> users = Database.getUsers();
-      private ImageService imageService = new ImageService();
 
       private Connection conn = null;
       private Statement stmt = null;
@@ -100,7 +98,6 @@ public class UserService {
                         e.printStackTrace();
                   }
             }
-
             if(user == null) {
                   throw new DataNotFoundException("User with uuid " + uuid + " not found");
             }
@@ -137,7 +134,6 @@ public class UserService {
             }
 
             user.setUuid(uuid);
-            imageService.addImage(user.getUuid(), null, null);
             return user;
       }
 
@@ -169,7 +165,6 @@ public class UserService {
                         e.printStackTrace();
                   }
             }
-
             if(updatedRows == 0)
                   return null;
             return user;
@@ -197,7 +192,7 @@ public class UserService {
               }
               res.close();
               query = "DELETE FROM Users WHERE uuid = '" + uuid + "'";
-              query2 = "DELETE FROM Images WHERE uuid = '" + uuid + "'";        //TODO DA RIVEDERE
+              query2 = "DELETE FROM Images WHERE uuid = '" + uuid + "'";
               stmt.executeUpdate(query);
               stmt.executeUpdate(query2);
 
@@ -216,21 +211,7 @@ public class UserService {
                   e.printStackTrace();
               }
           }
-
-            if(user != null) {
-                  String path = "upload_" + uuid + File.separator;
-                  File file = new File(path);
-                  String[] entries = file.list();
-                  if(entries != null) {
-                        for (String s : entries) {
-                              File currentFile = new File(file.getPath(), s);
-                              boolean del = currentFile.delete();
-                        }
-                  }
-                  boolean del = file.delete();
-            }
-            //Database.getImagesByUsers().remove(uuid);
-            return user;
+          return user;
       }
 
 

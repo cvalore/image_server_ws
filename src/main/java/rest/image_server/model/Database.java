@@ -3,9 +3,6 @@ package rest.image_server.model;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 public class Database {
       //TODO
@@ -22,12 +19,4 @@ public class Database {
             }
             return null;
       }
-
-      private static Map<String, User> users = new HashMap<>();
-      private static Map<String, List<Image>> imagesByUsers = new HashMap<>();
-
-      public static Map<String, User> getUsers() {
-            return users;
-      }
-      public static Map<String, List<Image>> getImagesByUsers() { return imagesByUsers; }
 }

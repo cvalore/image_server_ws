@@ -7,6 +7,13 @@ import java.util.List;
 
 public class ImageFrontend {
       public static String getImagesRepresentation(List<Image> images, String title, String uploadUser) {
+            if (title.equals("Images deleted")) {
+                  return "<html>" +
+                          "<head> <title> " + title + " - Image Server RESTful API service </title> </head>" +
+                          "<body> <h1> " + title + "</h1>" +
+                  "</body> </html>";
+            }
+
             StringBuilder stringBuilder = new StringBuilder();
             for(Image i : images) {
                   stringBuilder.append(getImageRepresentation(i, ""));
@@ -40,6 +47,11 @@ public class ImageFrontend {
                   last = "</body> </html>";
             }
 
+            if (title.equals("Image deleted")) {
+                  return
+                          pre + last;
+            }
+
             String selfLink = "";
             for(Link l : image.getLinks()) {
                   if(l.getRel().equals("self")) {
@@ -51,15 +63,15 @@ public class ImageFrontend {
             stringBuilder.append("/raw");
 
 
-            return
-                    pre +
-                    "<h2> Image " + image.getUuid() + " - " + image.getTitle() + " </h2>" +
+            return pre +
+                            "<h2> Image " + image.getUuid() + " - " + image.getTitle() + " </h2>" +
 
-                        "<img src=\""+ stringBuilder.toString() + "\" alt=\"" + image.getTitle() +
-                        "\" width=\"" + image.getWidth() + "\" height=\""+ image.getHeight() + "\">" +
+                            "<img src=\"" + stringBuilder.toString() + "\" alt=\"" + image.getTitle() +
+                            "\" width=\"" + image.getWidth() + "\" height=\"" + image.getHeight() + "\">" +
 
-                    getLinksRepresentation(image) + "<br>" +
-                    last;
+                            getLinksRepresentation(image) + "<br>" +
+                            last;
+
       }
 
       private static String getLinksRepresentation(Image image) {

@@ -10,9 +10,10 @@ import java.util.List;
 public class Image {
       private String uuid;
       private String title;
-      private String path;
+      //private String path;
       private int width;
       private int height;
+      private byte[] imgData;
       //private String userName;    //not used otherwise when the user changes it thorugh PUT
                                     //all the images need to be changed
 
@@ -70,14 +71,6 @@ public class Image {
             links.add(link);
       }
 
-      public String getPath() {
-            return path;
-      }
-
-      public void setPath(String path) {
-            this.path = path;
-      }
-
       public int getWidth() {
             return width;
       }
@@ -92,5 +85,13 @@ public class Image {
 
       public void setHeight(int height) {
             this.height = height;
+      }
+
+      public byte[] getImgData() {
+            return imgData;
+      }
+
+      public void setImgData(byte[] imgData) {
+            this.imgData = imgData;
       }
 }
