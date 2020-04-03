@@ -358,7 +358,7 @@ public class ImageService {
                   }
                   stmt = conn.createStatement();
                   selectQuery = "SELECT  imageuuid, title, width, height, selflink, userlink, userimageslink, imageslink, userslink FROM Images " +
-                          "WHERE useruuid = '" + userUuid + " AND imageuuid = '" + imageUuid + "'";
+                          "WHERE useruuid = '" + userUuid + "' AND imageuuid = '" + imageUuid + "'";
                   ResultSet res = stmt.executeQuery(selectQuery);
                   while(res.next()) {
                         image = new Image(res.getString("imageuuid"), res.getString("title"));
@@ -372,7 +372,7 @@ public class ImageService {
                   }
                   res.close();
                   query = "UPDATE Images " +
-                          "SET title = '" + newTitle +"' WHERE useruuid = '" + userUuid + " AND imageuuid = '" + imageUuid + "'";
+                          "SET title = '" + newTitle +"' WHERE useruuid = '" + userUuid + "' AND imageuuid = '" + imageUuid + "'";
                   updatesNumber = stmt.executeUpdate(query);
             } catch (SQLException e) {e.printStackTrace();}
             finally {
