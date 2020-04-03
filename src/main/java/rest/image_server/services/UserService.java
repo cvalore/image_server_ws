@@ -181,6 +181,7 @@ public class UserService {
                       throw new GenericException("Cannot connect to db");
                 }
               stmt = conn.createStatement();
+
               retrieveUser = "SELECT * FROM Users WHERE uuid = '" + uuid + "'";
               ResultSet res = stmt.executeQuery(retrieveUser);
               while(res.next()){
@@ -192,7 +193,7 @@ public class UserService {
               }
               res.close();
               query = "DELETE FROM Users WHERE uuid = '" + uuid + "'";
-              query2 = "DELETE FROM Images WHERE uuid = '" + uuid + "'";
+              query2 = "DELETE FROM Images WHERE useruuid = '" + uuid + "'";
               stmt.executeUpdate(query);
               stmt.executeUpdate(query2);
 
