@@ -288,6 +288,7 @@ public class ImageService {
                         throw new GenericException("Cannot connect to db");
                   }
 
+                  stmt = conn.createStatement();
                   deleteImages = "DELETE FROM Images WHERE useruuid = '" + userUuid + "'";
                   deletedImagesNum = stmt.executeUpdate(deleteImages);
 
@@ -321,6 +322,7 @@ public class ImageService {
                         throw new GenericException("Cannot connect to db");
                   }
 
+                  stmt = conn.createStatement();
                   deleteQuery = "DELETE FROM Images WHERE useruuid = '" + userUuid + "' AND imageuuid = '" + imageUuid + "'";
                   removed = stmt.executeUpdate(deleteQuery);
 
