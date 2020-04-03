@@ -175,6 +175,19 @@ public class ImageService {
                   ps.close();
             } catch (SQLException e) {
                   e.printStackTrace();
+            } finally {
+                  try {
+                        if (stmt != null){
+                              stmt.close();
+                        }
+                  } catch (SQLException e) {e.printStackTrace();}
+                  try {
+                        if (conn != null) {
+                              conn.close();
+                        }
+                  } catch (SQLException e) {
+                        e.printStackTrace();
+                  }
             }
             return inputStream;
       }
