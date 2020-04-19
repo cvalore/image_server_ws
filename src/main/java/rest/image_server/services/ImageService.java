@@ -104,7 +104,7 @@ public class ImageService {
                         e.printStackTrace();
                   }
             }
-            if(images == null) {
+            if(images.isEmpty()) {
                   throw new DataNotFoundException("User with uuid " + userUuid + " not found");
             }
             return images;
