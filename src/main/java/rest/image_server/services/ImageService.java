@@ -61,7 +61,6 @@ public class ImageService {
                   }
             }
 
-//          DO WE NEED TO ADD DATA NOT FOUND EXCEPTION??
             return images;
       }
 
@@ -103,9 +102,6 @@ public class ImageService {
                   } catch (SQLException e) {
                         e.printStackTrace();
                   }
-            }
-            if(images == null) {
-                  throw new DataNotFoundException("User with uuid " + userUuid + " not found");
             }
             return images;
       }
@@ -188,6 +184,9 @@ public class ImageService {
                   } catch (SQLException e) {
                         e.printStackTrace();
                   }
+            }
+			if(inputStream == null) {
+                  throw new DataNotFoundException("Image with uuid " + imageUuid + " not found");
             }
             return inputStream;
       }
