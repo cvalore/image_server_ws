@@ -29,15 +29,6 @@ public class UserResource {
       public String addUser(User user, @Context UriInfo uriInfo) {
             User newUser = userService.addUser(user);
 
-            /*Create directory*/
-            String path = "upload_" + newUser.getUuid() + File.separator;
-
-            File file = new File(path);
-            boolean created = file.mkdir();
-            if(!created) {
-                  throw new GenericException("Cannot create " + path + " folder");
-            }
-
             /*Add links*/
             userService.addLinks(uriInfo, newUser);
 

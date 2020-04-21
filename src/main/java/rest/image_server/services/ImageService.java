@@ -185,7 +185,8 @@ public class ImageService {
                         e.printStackTrace();
                   }
             }
-			if(inputStream == null) {
+	
+	    if(inputStream == null) {
                   throw new DataNotFoundException("Image with uuid " + imageUuid + " not found");
             }
             return inputStream;
